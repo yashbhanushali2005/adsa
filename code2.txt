@@ -1,0 +1,879 @@
+RED BLACK TREE:
+#include <stdio.h>
+#include <stdlib.h>
+enum color { R, B };
+struct node
+{
+struct node *left;
+int val;
+struct node *right;
+struct node *parent;
+enum color type;
+};
+struct node *root = NULL;
+struct node *newnode = NULL;
+struct node *current = NULL;
+struct node *follow = NULL;
+void createnode(int x);
+void insertnode();
+void doublered();
+void case1(struct node *z);
+void case2(struct node *z);
+void traversal();
+void createnode(int x){
+newnode = malloc(sizeof(struct node));
+newnode->data = x;
+newnode->left = newnode->right = newnode->parent = NULL;
+if(root == NULL)
+newnode->type = B;
+else
+newnode->type = R;
+}
+void insertnode()
+{
+if(root == NULL)
+{
+root = newnode;
+return;
+}
+current = root;
+follow = NULL;
+while(current != NULL)
+{
+follow = current;
+if(newnode->val < current->val)
+current = current->left;
+else
+current = current->right;
+}
+newnode->parent = follow;
+if(newnode->data < follow->data)
+{
+follow->left = newnode;
+}
+else
+{
+follow->right = newnode;
+}
+}
+void doublered(){
+struct node *z = newnode;
+while(z != root && z->parent->type == R){
+struct node *p = z->parent;
+struct node *g = p->parent;
+if(!g) break;
+struct node *u = (p == g->left)? g->right : g->left;
+if(u && u->type == R){
+case1(z);
+}
+else{
+case2(z);
+break;
+}
+z = g;
+}
+root->type = B;
+}
+void case1(struct node *z)
+{
+struct node *p = z->parent;
+struct node *g = p->parent;
+struct node *u = (p == g->left)? g->right : g->left;
+p->type =B;
+if(u) u->type = B;
+g->type = R;
+}
+void case2(struct node *z)
+{
+struct node *p = z->parent;
+struct node *g = p->parent;
+if(p == g->left){
+if(z == p->right){
+p->right = z->left;
+if(z->left) z->left->parent = p;
+z->left = p;
+p->parent = z;
+g->left = z;
+z->parent = g;
+p = z;
+g = p->parent;
+}
+g->left = p->right;
+if(p->right) p->right->parent = g;
+p->right = g;
+}
+else{
+if(z == p->left){
+p->left = z->right;
+if(z->right) z->right->parent = p;
+z->right = p;
+p->parent = z;
+g->right = z;
+z->parent = g;
+p = z;
+g = p->parent;
+}
+g->right = p->left;
+if(p->left) p->left->parent = g;
+p->left = g;
+}
+p->parent = g->parent;
+if(!g->parent)
+root = p;
+else if(g == g->parent->left)
+g->parent->left = p;
+else
+g->parent->right = p;
+g->parent = p;
+p->type = B;
+g->type = R;
+}
+void traversal(){
+if(!root) return;
+struct node* q[100];
+int f=0,r=0;
+q[r++] = root;
+while(f<r){
+int size = r-f;
+while(size -- )
+{
+struct node* t = q[f++];
+printf("%d(%c) ",t->data,t->type == R?'R':'B');
+if(t->left) q[r++] = t->left;
+if(t->right) q[r++] = t->right;
+}
+printf("\n");
+}
+}
+int main()
+{
+int n, x;
+char ans;
+scanf("%d",&n);
+for(int i =0;i<n;i++)
+{
+scanf(" %c %d",&ans,&x);
+if(ans == 'I')
+{
+createnode(x);
+insertnode();
+doublered();
+}
+}
+traversal();
+}
+
+
+
+FRACTIONAL KNAPSACK:
+#include <stdio.h>
+#include <stdlib.h>
+struct item {
+int id;
+float profit;
+float weight;
+float xi;
+float pw;
+int fwt;
+};
+int bal = 0;
+int main()
+{
+int n;
+float maxprofit = 0;
+scanf("%d", &n);
+scanf("%d", &bal);
+struct item arr[n];
+for(int i = 0; i < n; i++)
+{
+arr[i].id = i + 1;
+scanf("%f %f", &arr[i].profit, &arr[i].weight);
+arr[i].pw = arr[i].profit / arr[i].weight;
+arr[i].xi = 0;
+}
+for(int i = 0; i < n-1; i++)
+{
+for(int j = 0; j < n-i-1; j++)
+{
+if(arr[j].pw < arr[j+1].pw)
+{
+struct item temp = arr[j];
+arr[j] = arr[j+1];
+arr[j+1] = temp;
+}
+}
+}
+for(int i = 0; i < n; i++) {
+if(bal == 0)
+break;
+if(arr[i].weight <= bal) {
+arr[i].xi = 1;
+arr[i].fwt = arr[i].weight;
+}
+else {
+arr[i].xi = (float)bal / arr[i].weight;
+arr[i].fwt = arr[i].xi * arr[i].weight;
+}
+bal = bal - arr[i].fwt;
+}
+for(int i = 0; i < n; i++) {
+maxprofit += arr[i].profit * arr[i].xi;
+}
+printf("%.2f", maxprofit);
+return 0;
+}
+
+
+
+JOB SEQUENCING:
+#include <stdio.h>
+#include <stdlib.h>
+struct job {
+int id;
+int deadline;
+int profit;
+};
+int compare(const void *a, const void *b) {
+struct job *j1 = (struct Job *)a;
+struct job *j2 = (struct Job *)b;
+return j2->profit - j1->profit;
+}
+int main() {
+int n;
+scanf("%d", &n);
+struct job arr[n];
+for(int i = 0; i < n; i++) {
+scanf("%d %d %d", &arr[i].id, &arr[i].deadline, &arr[i].profit);
+}
+qsort(arr, n, sizeof(struct job), compare);
+int maxDeadline = 0;
+for(int i = 0; i < n; i++)
+if(arr[i].deadline > maxDeadline)
+maxDeadline = arr[i].deadline;
+int slot[maxDeadline];
+for(int i = 0; i < maxDeadline; i++)
+{
+slot[i] = -1;
+}
+int totalProfit = 0;
+for(int i = 0; i < n; i++)
+{
+for(int j = arr[i].deadline - 1; j >= 0; j--)
+{
+if(slot[j] == -1)
+{
+slot[j] = arr[i].id;
+totalProfit += arr[i].profit;
+break;
+}
+}
+}
+printf("Scheduled tasks: ");
+for(int i = 0; i < maxDeadline; i++)
+{
+if(slot[i] != -1)
+{
+printf("%d ", slot[i]);
+}
+}
+printf("\nMaximum Profit: %d", totalProfit);
+return 0;
+}
+
+
+
+LCS:
+#include <stdio.h>
+#include <string.h>
+int C[100][100];
+char Arrow[100][100];
+void printLCS(char Arrow[100][100], char X[], int i, int j)
+{
+if(i==0 || j==0)
+{
+return;
+}
+if(Arrow[i][j] == 'd')
+{
+printLCS(Arrow, X, i-1, j-1);
+printf("%c", X[i-1]);
+}
+else if(Arrow[i][j] == 'u')
+{
+printLCS(Arrow, X, i-1, j);
+}
+else
+{
+printLCS(Arrow, X, i, j-1);
+}
+}
+int main()
+{
+char X[100], Y[100];
+int m,n,i,j;
+scanf("%s", X);
+scanf("%s", Y);
+m = strlen(X);
+n = strlen(Y);
+for(i=0;i<=m;i++)
+{
+for(j=0;j<=n;j++)
+{
+if(i==0 || j==0)
+{
+C[i][j] = 0;
+}
+else if(X[i-1] == Y[j-1])
+{
+C[i][j] = C[i-1][j-1] + 1;
+Arrow[i][j] = 'd';
+}
+else if(C[i-1][j] >= C[i][j-1])
+{
+C[i][j] = C[i-1][j];
+Arrow[i][j] = 'u';
+}
+else
+{
+C[i][j] = C[i][j-1];
+Arrow[i][j] = 'l';
+}
+}
+}
+printf("\nLength of LCS: %d\n", C[m][n]);
+printf("LCS: ");
+printLCS(Arrow, X, m, n);
+return 0;
+}
+
+
+
+RABIN KARP:
+#include <stdio.h>
+#include <string.h>
+int d = 256;
+int q = 101;
+void rabinKarp(char text[], char pattern[]) {
+int m = strlen(pattern);
+int n = strlen(text);
+int i, j;
+int p = 0; // hash value for pattern
+int t = 0; // hash value for text
+int h = 1;
+int found = 0;
+for(i = 0; i < m-1; i++)
+h = (h * d) % q;
+for(i = 0; i < m; i++)
+{
+p = (d * p + pattern[i]) % q;
+t = (d * t + text[i]) % q;
+}
+for(i = 0; i <= n - m; i++)
+{
+if(p == t) {
+for(j = 0; j < m; j++) {
+if(text[i + j] != pattern[j])
+break;
+}
+if(j == m) {
+printf("Pattern found at index: %d\n", i);
+found = 1;
+}
+}
+if(i < n - m) {
+t = (d * (t - text[i] * h) + text[i + m]) % q;
+if(t < 0)
+t = t + q;
+}
+}
+if(found == 0)
+printf("Pattern not found\n");
+}
+int main() {
+char text[100], pattern[50];
+scanf("%s", text);
+scanf("%s", pattern);
+rabinKarp(text, pattern);
+return 0;
+}
+
+
+
+COMPUTATIONAL EFFICIENCY:
+#include <stdio.h>
+// Recursive Fibonacci
+int fib_recursive(int n) {
+if (n <= 1)
+return n;
+return fib_recursive(n - 1) + fib_recursive(n - 2);
+}
+// Dynamic Fibonacci
+int fib_dynamic(int n) {
+if (n <= 1)
+return n;
+int a = 0, b = 1, c;
+for (int i = 2; i <= n; i++) {
+c = a + b;
+a = b;
+b = c;
+}
+return b;
+}
+int main() {
+int n;
+scanf("%d", &n);
+printf("Recursive Fibonacci(%d): %d\n", n, fib_recursive(n));
+printf("Non-Recursive Fibonacci(%d): %d\n", n, fib_dynamic(n));
+return 0;
+}
+
+
+
+COIN CHANGE:
+#include <stdio.h>
+#include <limits.h>
+int minCoins(int coins[], int n, int T) {
+int dp[T + 1];
+// Initialize dp array
+for (int i = 0; i <= T; i++) {
+dp[i] = INT_MAX;
+}
+dp[0] = 0; // Base case
+// Fill dp array
+for (int i = 1; i <= T; i++) {
+for (int j = 0; j < n; j++) {
+if (coins[j] <= i && dp[i - coins[j]] != INT_MAX) {
+if (dp[i] > dp[i - coins[j]] + 1) {
+dp[i] = dp[i - coins[j]] + 1;
+}
+}
+}
+}
+return (dp[T] == INT_MAX) ? -1 : dp[T];
+}
+int main() {
+int n, T;
+// Input
+scanf("%d", &n);
+int coins[n];
+for (int i = 0; i < n; i++) {
+scanf("%d", &coins[i]);
+}
+scanf("%d", &T);
+int result = minCoins(coins, n, T);
+// Output
+if (result == -1)
+printf("-1\n");
+else
+printf("Minimum coins required: %d\n", result);
+return 0;
+}
+
+
+
+MATRIX CHAIN:
+#include <stdio.h>
+#include <limits.h>
+// Function to find minimum number of multiplications
+int matrixMultiplication(int p[], int n) {
+int m[n][n];
+// Cost is 0 when multiplying one matrix
+for (int i = 1; i < n; i++) {
+m[i][i] = 0;
+}
+// L is chain length
+for (int l = 2;l < n; l++) {
+for (int i = 1; i < n - l + 1; i++) {
+int j = i + l - 1;
+m[i][j] = INT_MAX;
+for (int k = i; k < j; k++) {
+int cost = m[i][k] + m[k + 1][j] + p[i - 1] * p[k] * p[j];
+if (cost < m[i][j]) {
+m[i][j] = cost;
+}
+}
+}
+}
+return m[1][n - 1];
+}
+int main() {
+int n;
+scanf("%d", &n);
+int p[n + 1];
+// Input dimensions
+for (int i = 0; i <= n; i++) {
+scanf("%d", &p[i]);
+}
+int result = matrixMultiplication(p, n + 1);
+printf(" %d\n", result);
+return 0;
+}
+
+
+
+TOWER OF HANOI:
+#include <stdio.h>
+void hanoi(int n, char source, char auxiliary, char destination)
+{
+if (n == 1)
+{
+printf("Move disk 1 from %c to %c\n", source, destination);
+return;
+}
+hanoi(n - 1, source, destination, auxiliary);
+printf("Move disk %d from %c to %c\n", n, source, destination);
+hanoi(n - 1, auxiliary, source, destination);
+}
+int main()
+{
+int N;
+scanf("%d", &N);
+hanoi(N, 'A', 'B', 'C');
+return 0;
+}
+
+
+
+QUICK SORT:
+#include <stdio.h>
+void swap(int *a, int *b)
+{
+int temp = *a;
+*a = *b;
+*b = temp;
+}
+int partition(int arr[], int low, int high)
+{
+int pivot = arr[high]; // choosing last element as pivot
+int i = low - 1;
+for (int j = low; j < high; j++)
+{
+if (arr[j] < pivot)
+{
+i++;
+swap(&arr[i], &arr[j]);
+}
+}
+swap(&arr[i + 1], &arr[high]);
+return i + 1;
+}
+void quickSort(int arr[], int low, int high)
+{
+if (low < high)
+{
+int pi = partition(arr, low, high);
+quickSort(arr, low, pi - 1);
+quickSort(arr, pi + 1, high);
+}
+}
+int main()
+{
+int N;
+scanf("%d", &N);
+int arr[N];
+for (int i = 0; i < N; i++)
+{
+scanf("%d", &arr[i]);
+}
+quickSort(arr, 0, N - 1);
+for (int i = 0; i < N; i++)
+{
+printf("%d", arr[i]);
+if (i != N - 1)
+{
+printf(" ");
+}
+}
+return 0;
+}
+
+
+
+0/1 KNAPSACK
+#include <stdio.h>
+int max(int a, int b)
+{
+return (a > b) ? a : b;
+}
+int main()
+{
+int N, W;
+scanf("%d", &N);
+int values[N], weights[N];
+for (int i = 0; i < N; i++)
+{
+scanf("%d", &values[i]);
+}
+for (int i = 0; i < N; i++)
+{
+scanf("%d", &weights[i]);
+}
+scanf("%d", &W);
+int dp[N + 1][W + 1];
+for (int i = 0; i <= N; i++)
+{
+for (int w = 0; w <= W; w++)
+{
+if (i == 0 || w == 0)
+{
+dp[i][w] = 0;
+}
+else if (weights[i - 1] <= w)
+{
+dp[i][w] = max(
+values[i - 1] + dp[i - 1][w - weights[i - 1]],
+dp[i - 1][w]
+);
+}
+else
+{
+dp[i][w] = dp[i - 1][w];
+}
+}
+}
+printf("%d", dp[N][W]);
+return 0;
+}
+
+
+
+BINARY SEARCH:
+#include <stdio.h>
+int isSorted(int arr[], int n)
+{
+for (int i = 0; i < n - 1; i++)
+{
+if (arr[i] > arr[i + 1])
+{
+return 0;
+}
+}
+return 1;
+}
+int binarySearch(int arr[], int n, int key)
+{
+int low = 0,
+int high = n - 1;
+while (low <= high)
+{
+int mid = (low + high) / 2;
+if (arr[mid] == key)
+{
+return mid;
+}
+else if (arr[mid] < key)
+{
+low = mid + 1;
+}
+else
+{
+high = mid - 1;
+}
+}
+return -1;
+}
+int main()
+{
+int N, K;
+scanf("%d", &N);
+int arr[N];
+for (int i = 0; i < N; i++)
+{
+scanf("%d", &arr[i]);
+}
+scanf("%d", &K);
+if (!isSorted(arr, N))
+{
+printf("Array is not sorted");
+}
+else
+{
+int result = binarySearch(arr, N, K);
+printf("%d", result);
+}
+return 0;
+}
+
+
+
+MERGE SORT:
+#include <stdio.h>
+void merge(int arr[], int left, int mid, int right) {
+int i, j, k;
+int n1 = mid - left + 1;
+int n2 = right - mid;
+int L[n1], R[n2];
+// Copy data to temporary arrays
+for (i = 0; i < n1; i++)
+L[i] = arr[left + i];
+for (j = 0; j < n2; j++)
+R[j] = arr[mid + 1 + j];
+i = 0;
+j = 0;
+k = left;
+// Merge the temporary arrays
+while (i < n1 && j < n2) {
+if (L[i] <= R[j]) {
+arr[k] = L[i];
+i++;
+} else {
+arr[k] = R[j];
+j++;
+}
+k++;
+}
+// Copy remaining elements of L[]
+while (i < n1) {
+arr[k] = L[i];
+i++;
+k++;
+}
+// Copy remaining elements of R[]
+while (j < n2) {
+arr[k] = R[j];
+j++;
+k++;
+}
+}
+// Merge Sort function
+void mergeSort(int arr[], int left, int right) {
+if (left < right) {
+int mid = left + (right - left) / 2;
+// Sort first and second halves
+mergeSort(arr, left, mid);
+mergeSort(arr, mid + 1, right);
+// Merge the sorted halves
+merge(arr, left, mid, right);
+}
+}
+int main() {
+int n;
+// Input number of transactions
+scanf("%d", &n);
+int arr[n];
+// Input transaction amounts
+for (int i = 0; i < n; i++) {
+scanf("%d", &arr[i]);
+}
+// Apply Merge Sort
+mergeSort(arr, 0, n - 1);
+// Print sorted transaction amounts
+for (int i = 0; i < n; i++) {
+printf("%d ", arr[i]);
+}
+return 0;
+}
+
+
+
+MIN-MAX ALGO:
+#include <stdio.h>
+struct Pair
+{
+int min;
+int max;
+};
+struct Pair findMinMax(int arr[], int low, int high)
+{
+struct Pair result, left, right;
+if (low == high)
+{
+result.min = result.max = arr[low];
+return result;
+}
+if (high == low + 1)
+{
+if (arr[low] < arr[high])
+{
+result.min = arr[low];
+result.max = arr[high];
+}
+else
+{
+result.min = arr[high];
+result.max = arr[low];
+}
+return result;
+}
+int mid = (low + high) / 2;
+left = findMinMax(arr, low, mid);
+right = findMinMax(arr, mid + 1, high);
+result.min = (left.min < right.min) ? left.min : right.min;
+result.max = (left.max > right.max) ? left.max : right.max;
+return result;
+}
+int main()
+{
+int N;
+scanf("%d", &N);
+int arr[N];
+for (int i = 0; i < N; i++)
+{
+scanf("%d", &arr[i]);
+}
+struct Pair ans = findMinMax(arr, 0, N - 1);
+printf("Minimum: %d\n", ans.min);
+printf("Maximum: %d", ans.max);
+return 0;
+}
+
+
+
+OBST:
+#include <stdio.h>
+#include <limits.h>
+int sum(int freq[], int i, int j)
+{
+int s = 0;
+for (int k = i; k <= j; k++)
+{
+s = s + freq[k];
+}
+return s;
+}
+int main()
+{
+int N;
+scanf("%d", &N);
+int keys[N], freq[N];
+for (int i = 0; i < N; i++)
+{
+scanf("%d", &keys[i]);
+}
+for (int i = 0; i < N; i++)
+{
+scanf("%d", &freq[i]);
+}
+int cost[N][N];
+for (int i = 0; i < N; i++)
+{
+cost[i][i] = freq[i];
+}
+for (int L = 2; L <= N; L++)
+{
+for (int i = 0; i <= N - L; i++)
+{
+int j = i + L - 1;
+cost[i][j] = INT_MAX;
+int totalFreq = sum(freq, i, j);
+for (int r = i; r <= j; r++)
+{
+int c = totalFreq;
+if (r > i)
+{
+c = c + cost[i][r - 1];
+}
+if (r < j)
+{
+c = c + cost[r + 1][j];
+}
+if (c < cost[i][j])
+{
+cost[i][j] = c;
+}
+}
+}
+}
+printf("%d", cost[0][N - 1]);
+return 0;
+}
