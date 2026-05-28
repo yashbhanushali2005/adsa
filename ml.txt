@@ -1,361 +1,257 @@
-########### DECISION TREE #########
-#Import required libraries
-import pandas as pd
-import matplotlib.pyplot as plt
-
-
+EXP 3 : Decision Tree Algorithm using Python. 
+# Import Libraries
+import pandas as pd, matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.preprocessing import LabelEncoder
-from sklearn import metrics
+from sklearn.metrics import accuracy_score, confusion_matrix
 
+# Load Dataset
+df = pd.read_csv("dataset.csv")   # Change dataset name
 
-#Load the dataset
-df = pd.read_csv("post_covid_health_effects_dataset.csv")
-
-
-print(df.head())
-print(df.info())
-
-
-#Separate Features & Target
-X = df.iloc[:, :-1]   # all columns except last
-y = df.iloc[:, -1]    # last column
-
-
-#Encode categorical columns
-le = LabelEncoder()
-
-
-for col in X.columns:
-    if X[col].dtype == 'object':
-        X[col] = le.fit_transform(X[col])
-
-
-if y.dtype == 'object':
-    y = le.fit_transform(y)
-
-
-#Train–Test Split    
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=42
-)
-
-
-#Create & Train Decision Tree Model
-clf = DecisionTreeClassifier(criterion="gini", random_state=42)
-clf.fit(X_train, y_train)
-
-
-#Prediction & Accuracy
-y_pred = clf.predict(X_test)
-print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-
-
-#Plot the Decision Tree
-plt.figure(figsize=(18,10))
-plot_tree(
-    clf,
-    feature_names=X.columns,
-    class_names=True,
-    filled=True
-)
-plt.show()
-
-
-######### NAIVE BAYES & SVM #########
-import pandas as pd
-
-
-df = pd.read_csv("Crop_recommendation.csv")
-df.head()
-
-
-df.info()
-df.isnull().sum()
-
-
-
-
-df = df.dropna()
-
-
-
-
-from sklearn.preprocessing import LabelEncoder
-
-
-le = LabelEncoder()
-
-
+# Convert categorical columns
 for col in df.select_dtypes(include='object').columns:
-    df[col] = le.fit_transform(df[col])
+    df[col] = LabelEncoder().fit_transform(df[col])
+
+# Features and Target
+X = df.drop("TargetColumn", axis=1)   # Change target column
+y = df["TargetColumn"]
+
+# Split Data
+X_train,X_test,y_train,y_test = train_test_split(
+    X,y,test_size=0.2,random_state=42)
+
+# Decision Tree Model
+model = DecisionTreeClassifier(max_depth=3)
+model.fit(X_train,y_train)
+pred = model.predict(X_test)
+
+# Results
+print("Accuracy =", accuracy_score(y_test,pred))
+print(confusion_matrix(y_test,pred))
+
+# Decision Tree Diagram
+plt.figure(figsize=(10,5))
+plot_tree(model, filled=True)
+plt.show()
 
 
 
 
-X = df.iloc[:, :-1]   # features
-y = df.iloc[:, -1]    # target
+EXP 4 : Naive Bayes and (SVM) Algorithms using Python
 
-
-
-
+NAIVE BAYES : 
+# Import Libraries
+import pandas as pd, seaborn as sns, matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-
-
-
-
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix
 
+# Load Dataset
+df = pd.read_csv("dataset.csv")
 
-nb_model = GaussianNB()
-nb_model.fit(X_train, y_train)
+# Convert categorical columns
+for col in df.select_dtypes(include='object').columns:
+    df[col] = LabelEncoder().fit_transform(df[col])
 
+# Features and Target
+X = df.drop("TargetColumn", axis=1)
+y = df["TargetColumn"]
 
-y_pred_nb = nb_model.predict(X_test)
+# Split Data
+X_train,X_test,y_train,y_test = train_test_split(
+    X,y,test_size=0.2,random_state=42)
 
+# Scaling
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
 
-print("Naive Bayes Accuracy:", accuracy_score(y_test, y_pred_nb))
-print(classification_report(y_test, y_pred_nb))
+# Naive Bayes
+model = GaussianNB()
+model.fit(X_train,y_train)
+pred = model.predict(X_test)
 
-
-from sklearn.svm import SVC
-
-
-svm_model = SVC(kernel='linear')
-svm_model.fit(X_train, y_train)
-
-
-y_pred_svm = svm_model.predict(X_test)
-
-
-print("SVM Accuracy:", accuracy_score(y_test, y_pred_svm))
-print(classification_report(y_test, y_pred_svm))
-
-
-print("Naive Bayes Accuracy:", accuracy_score(y_test, y_pred_nb))
-print("SVM Accuracy:", accuracy_score(y_test, y_pred_svm))
-
-
-import matplotlib.pyplot as plt
-
-
-models = ["Naive Bayes", "SVM"]
-accuracy = [
-    accuracy_score(y_test, y_pred_nb),
-    accuracy_score(y_test, y_pred_svm)
-]
-
-
-plt.bar(models, accuracy)
-plt.title("Model Accuracy Comparison")
-plt.ylabel("Accuracy")
+# Results
+print("Accuracy =", accuracy_score(y_test,pred))
+sns.heatmap(
+    confusion_matrix(y_test,pred),
+    annot=True,
+    fmt='d'
+)
+plt.title("Naive Bayes")
 plt.show()
 
-from sklearn.metrics import confusion_matrix
-
-
-print("NB Confusion Matrix")
-print(confusion_matrix(y_test, y_pred_nb))
-
-
-print("SVM Confusion Matrix")
-print(confusion_matrix(y_test, y_pred_svm))
-
-
-from sklearn.model_selection import cross_val_score
-
-
-nb_score = cross_val_score(nb_model, X, y, cv=5)
-svm_score = cross_val_score(svm_model, X, y, cv=5)
-
-
-print("NB Mean Accuracy:", nb_score.mean())
-print("SVM Mean Accuracy:", svm_score.mean())
-
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-
-cm_nb = confusion_matrix(y_test, y_pred_nb)
-
-
-plt.figure(figsize=(6,5))
-sns.heatmap(cm_nb, annot=True, fmt="d", cmap="Blues")
-
-
-plt.title("Naive Bayes Confusion Matrix Heatmap")
-plt.xlabel("Predicted Label")
-plt.ylabel("Actual Label")
-
-
-plt.show()
-
-
-cm_svm = confusion_matrix(y_test, y_pred_svm)
-
-
-plt.figure(figsize=(6,5))
-sns.heatmap(cm_svm, annot=True, fmt="d", cmap="Greens")
-
-
-plt.title("SVM Confusion Matrix Heatmap")
-plt.xlabel("Predicted Label")
-plt.ylabel("Actual Label")
-
-
-plt.show()
-
-######### LINEAR/LOGISTIC REGRESSION ########
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-df = pd.read_csv('Crop_recommendation.csv')
-df.head()
-df.isnull().sum()
-df = df.dropna()
-
-from sklearn.preprocessing import LabelEncoder
-
-
-le = LabelEncoder()
-
-
-for col in df.select_dtypes(include=['object']).columns:
-    df[col] = le.fit_transform(df[col])
-
-
-
+SVM CODE : 
+# Import Libraries
+import pandas as pd, seaborn as sns, matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# Load Dataset
+df = pd.read_csv("dataset.csv")
+
+# Convert categorical columns
+for col in df.select_dtypes(include='object').columns:
+    df[col] = LabelEncoder().fit_transform(df[col])
+
+# Features and Target
+X = df.drop("TargetColumn", axis=1)
+y = df["TargetColumn"]
+
+# Split Data
+X_train,X_test,y_train,y_test = train_test_split(
+    X,y,test_size=0.2,random_state=42)
+
+# Scaling
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# SVM
+model = SVC()
+model.fit(X_train,y_train)
+pred = model.predict(X_test)
+
+# Results
+print("Accuracy =", accuracy_score(y_test,pred))
+sns.heatmap(
+    confusion_matrix(y_test,pred),
+    annot=True,
+    fmt='d'
+)
+plt.title("SVM")
+plt.show()
 
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42)
 
 
+
+
+
+EXP 5 : Implement Linear Regression/Logistic Regression algorithms using Python on real-world dataset
+
+LINEAR REGRESSION:
+# Import Libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-
-
-model = LinearRegression()
-model.fit(X_train, y_train)
-
-
-y_pred = model.predict(X_test)
-
-
-print("MSE:", mean_squared_error(y_test, y_pred))
-print("R2 Score:", r2_score(y_test, y_pred))
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
-
-model = LogisticRegression(max_iter=1000)
-model.fit(X_train, y_train)
-
-
-y_pred = model.predict(X_test)
-
-
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print(confusion_matrix(y_test, y_pred))
-print(classification_report(y_test, y_pred))
-
-sns.heatmap(df.corr(), annot=True)
-plt.show()
-
-sns.regplot(x='temperature', y='rainfall', data=df)
-plt.show()
-
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-
-
-cm = confusion_matrix(y_test, y_pred)
-
-
-sns.heatmap(cm, annot=True, fmt='d')
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.show()
-
-from sklearn.linear_model import LogisticRegression
-
-
-model = LogisticRegression()
-model.fit(X_train[['temperature']], y_train)
-
-
-y_prob = model.predict_proba(X_test[['temperature']])[:,1]
-
-
-plt.scatter(X_test['temperature'], y_test)
-plt.plot(X_test['temperature'], y_prob)
-plt.title("Logistic Regression (Sigmoid Curve): temperature vs. rainfall (Class 1 Probability)")
-plt.xlabel("temperature")
-plt.ylabel("Probability")
-plt.show()
-
-plt.scatter(X_test['temperature'], y_test, label="Actual Data")
-
-
-# Linear
-lin_model = LinearRegression()
-lin_model.fit(X_train[['temperature']], y_train)
-plt.plot(X_test['temperature'],
-         lin_model.predict(X_test[['temperature']]),
-         label="Linear Regression")
-
-
-# Logistic
-log_model = LogisticRegression()
-log_model.fit(X_train[['temperature']], y_train)
-plt.plot(X_test['temperature'],
-         log_model.predict_proba(X_test[['temperature']])[:,1],
-         label="Logistic Regression")
-
-
-plt.legend()
-plt.title("Linear vs Logistic Regression (temperature vs. rainfall)")
-plt.xlabel("temperature")
-plt.ylabel("rainfall / Probability")
-plt.show()
-
 from sklearn.metrics import mean_squared_error
-print("Linear MSE:", mean_squared_error(y_test, y_pred))
 
-from sklearn.metrics import accuracy_score
-print("Logistic Accuracy:", accuracy_score(y_test, log_model.predict(X_test[['temperature']])))
+# Load Dataset
+df = pd.read_csv("dataset.csv")
 
-from sklearn.metrics import mean_squared_error, accuracy_score
+# Convert categorical columns
+for col in df.select_dtypes(include='object').columns:
+    df[col] = LabelEncoder().fit_transform(df[col])
+
+# Features and Target
+X = df.drop("TargetColumn", axis=1)
+y = df["TargetColumn"]
+
+# Split Data
+X_train,X_test,y_train,y_test = train_test_split(
+    X,y,test_size=0.2,random_state=42)
+
+# Scaling
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# Linear Regression
+model = LinearRegression()
+model.fit(X_train,y_train)
+pred = model.predict(X_test)
+
+# Result
+print("MSE =", mean_squared_error(y_test,pred))
 
 
-# Re-calculate linear MSE
-# y_pred currently holds predictions from Linear Regression with 'Age' (from cell uIvMLRwXkn1p)
-linear_mse = mean_squared_error(y_test, y_pred)
 
+LOGISTIC REGRESSION:
+# Import Libraries
+import pandas as pd, seaborn as sns, matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix
 
-# Re-calculate logistic accuracy
-# log_model holds the Logistic Regression model (from cell K3MjNCQSk32x)
-logistic_accuracy = accuracy_score(y_test, log_model.predict(X_test[['temperature']]))
+# Load Dataset
+df = pd.read_csv("dataset.csv")
 
+# Convert categorical columns
+for col in df.select_dtypes(include='object').columns:
+    df[col] = LabelEncoder().fit_transform(df[col])
 
-metrics = ['MSE (Linear)', 'Accuracy (Logistic)']
-values = [linear_mse, logistic_accuracy]
+# Features and Target
+X = df.drop("TargetColumn", axis=1)
+y = df["TargetColumn"]
 
+# Split Data
+X_train,X_test,y_train,y_test = train_test_split(
+    X,y,test_size=0.2,random_state=42)
 
-plt.bar(metrics, values)
-plt.title("Model Performance Metrics")
+# Scaling
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+# Logistic Regression
+model = LogisticRegression()
+model.fit(X_train,y_train)
+pred = model.predict(X_test)
+
+# Results
+print("Accuracy =", accuracy_score(y_test,pred))
+sns.heatmap(
+    confusion_matrix(y_test,pred),
+    annot=True,
+    fmt='d'
+)
+plt.title("Logistic Regression")
 plt.show()
 
-######## K-MEANS CLUSTERING #######
+
+
+
+
+
+
+
+EXP 6 : Implementation of K-Means Clustering Algorithm using Python.
+# Import Libraries
+import pandas as pd, matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.cluster import KMeans
+
+# Load Dataset
+df = pd.read_csv("dataset.csv")   # Change dataset name
+
+# Convert categorical columns
+for col in df.select_dtypes(include='object').columns:
+    df[col] = LabelEncoder().fit_transform(df[col])
+
+# Select Features
+X = df.iloc[:,0:2]     # Select columns for clustering
+
+# K-Means Model
+kmeans = KMeans(n_clusters=3, random_state=42)
+df["Cluster"] = kmeans.fit_predict(X)
+
+# Plot Clusters
+plt.scatter(X.iloc[:,0], X.iloc[:,1], c=df["Cluster"])
+plt.scatter(
+    kmeans.cluster_centers_[:,0],
+    kmeans.cluster_centers_[:,1],
+    marker='X',
+    s=200
+)
+plt.title("K-Means Clustering")
+plt.show()
+
+
+
